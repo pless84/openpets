@@ -241,4 +241,22 @@ for (const { key, errMsg } of booleanKeys) {
   console.log("validatePreferencePatch: physics fractions — PASS");
 }
 
+{
+  assert.equal(validatePreferencePatch({ bubbleScale: 1.2 }).bubbleScale, 1.2);
+  assert.equal(validatePreferencePatch({ bubbleDurationScale: 2.5 }).bubbleDurationScale, 2.5);
+  assert.throws(() => validatePreferencePatch({ bubbleScale: 3 }), /Invalid speech bubble scale/);
+  assert.throws(() => validatePreferencePatch({ bubbleDurationScale: "long" }), /Invalid speech bubble duration/);
+  console.log("validatePreferencePatch: speech bubble size and duration — PASS");
+}
+
+{
+  assert.deepEqual(
+    validatePreferencePatch({ notificationMirrorEnabled: true, notificationMirrorIncludeBody: false, notificationMirrorIgnoredApps: "Spotify, KDE Connect" }),
+    { notificationMirrorEnabled: true, notificationMirrorIncludeBody: false, notificationMirrorIgnoredApps: "Spotify, KDE Connect" },
+  );
+  assert.throws(() => validatePreferencePatch({ notificationMirrorEnabled: "yes" }), /Invalid notificationMirrorEnabled/);
+  assert.throws(() => validatePreferencePatch({ notificationMirrorIgnoredApps: "x".repeat(301) }), /Invalid ignored notification apps/);
+  console.log("validatePreferencePatch: notification mirror settings — PASS");
+}
+
 console.log("\nAll preference-patch tests passed.");

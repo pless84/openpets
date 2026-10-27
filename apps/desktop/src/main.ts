@@ -11,6 +11,7 @@ import { getPetsRoot } from "./pet-paths.js";
 import { setLocaleFromPreference } from "./i18n/index.js";
 import { applyExternalPetReaction, applyExternalPetSay, getDefaultPetPaused, isDefaultPetVisible, openDefaultPetManagerCheckIn, presentManagerCheckInOffer, reclampDefaultPetWindow, recoverDefaultPetMouseInterop, refreshDefaultPetContent, shouldOpenDefaultPetOnLaunch, showDefaultPet } from "./default-pet-controller.js";
 import { installAppLifecycle } from "./lifecycle.js";
+import { stopDesktopNotificationMirror, syncDesktopNotificationMirror } from "./desktop-notification-mirror.js";
 import { initializeLanController, isDefaultPetAwayForLan, startLanController } from "./lan-controller.js";
 import { debug, error as logError, getLogFilePath, info, initializeLogger, warn } from "./logger.js";
 import { startLocalIpcServer } from "./local-ipc.js";
@@ -151,6 +152,7 @@ if (!gotSingleInstanceLock) {
     },
     stopPetDisplayCoordinator: () => {
       petDisplayCoordinator?.stop();
+      stopDesktopNotificationMirror();
       stopPetActivities();
       setPetInstallationChangeHandler(null);
     },
@@ -365,6 +367,7 @@ if (!gotSingleInstanceLock) {
     // Pinned pets are user-owned windows: they come back on every launch, independent of
     // launcher visibility and of any agent session.
     syncPinnedPets();
+    syncDesktopNotificationMirror();
     startLanController();
     try {
       await remoteControlService.start();

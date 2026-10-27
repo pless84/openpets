@@ -30,7 +30,8 @@ export type LogScope =
   | "capabilities"
   | "capture"
   | "voice"
-  | "provider";
+  | "provider"
+  | "notifications";
 
 type LogFields = Record<string, unknown>;
 
