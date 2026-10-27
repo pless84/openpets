@@ -405,6 +405,7 @@ export const en = {
   "settings.general.bubbleTest.button": "Show Test Message",
   "settings.general.bubbleTest.message": "Hi! This is how my speech bubbles look. Change the size, duration or theme and try again.",
   "settings.general.bubbleTest.notShown": "Your pet couldn't show the message. It may be paused, hidden or visiting another computer.",
+  "settings.general.bubbleTest.otherBubble": "Your pet is showing another speech bubble. Try again when it closes.",
   "settings.notificationMirror.title": "Desktop Notifications",
   "settings.notificationMirror.enabled.title": "Show desktop notifications on the pet",
   "settings.notificationMirror.enabled.description": "Your pet repeats the app name and title of each desktop notification in a speech bubble.",
