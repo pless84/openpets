@@ -17,15 +17,15 @@ import { codexV2SpriteLayout, getCodexPetSpriteLayout, maxCodexSpritesheetBytes,
 import { setConfinementEnabled } from "./confinement-manager.js";
 import { setCrossDisplayRoamingEnabled } from "./display.js";
 import { getActiveLocale, getActiveMessages, LOCALE_LABELS, SUPPORTED_LOCALES, setLocaleFromPreference, t, type Locale, type LocalePreference } from "./i18n/index.js";
-import { recoverDefaultPetMouseInterop, refreshDefaultPetContent, resetDefaultPetToInitialPosition } from "./default-pet-controller.js";
+import { applyExternalPetSay, recoverDefaultPetMouseInterop, refreshDefaultPetContent, resetDefaultPetToInitialPosition } from "./default-pet-controller.js";
 import { readInstalledPetMetadata, readInstalledPetSpriteLayout, readInstalledPetSpritesheet } from "./installed-pet-layout.js";
 import { defaultOutfitId, isSafeOutfitId } from "./pet-wardrobe-core.js";
 import { getPetWardrobeSnapshot, updatePetWardrobe } from "./pet-wardrobe.js";
 import { getPetActivities, playPetActivity, readInstalledActivityAsset, setPetActivityEnabled } from "./pet-activities.js";
 import { installControlCenterPetActivitiesIpcHandlers } from "./control-center-pet-activities-ipc.js";
-import { refreshPetWindowsForPetId } from "./pet-window-refresh.js";
+import { refreshAllPetWindows, refreshPetWindowsForPetId } from "./pet-window-refresh.js";
 import { refreshPetGazePreference } from "./pet-window.js";
-import { getLanStatusSnapshot } from "./lan-controller.js";
+import { getLanStatusSnapshot, isDefaultPetAwayForLan } from "./lan-controller.js";
 import { validatePreferencePatch } from "./preference-patch.js";
 import { refreshPinnedPetContent, syncPinnedPets } from "./pinned-pet-controller.js";
 import { maxPinnedPets } from "./pinned-pets.js";
@@ -103,7 +103,7 @@ function syncDockVisibilityForInternalUi(): void {
 }
 
 function getSettingsStateSnapshot(): {
-  preferences: Pick<ReturnType<typeof getAppStateSnapshot>["preferences"], "openDefaultPetOnLaunch" | "appearanceTheme" | "petScale" | "hudScale" | "bubbleScale" | "bubbleDurationScale" | "waitingAnimationDurationMs" | "idleCursorGazeEnabled" | "reactionAnimationOverrides" | "petPoolOrder" | "petPoolEnabled" | "pinnedPets" | "petConfinementEnabled" | "petCrossDisplayEnabled" | "petGravityEnabled" | "petBounciness" | "petFloorFriction" | "personality" | "voiceAssistantShortcut" | "chatShortcut" | "petToggleShortcut" | "showChatButton" | "showTalkButton" | "petButtonsPosition" | "petButtonsSize">;
+  preferences: Pick<ReturnType<typeof getAppStateSnapshot>["preferences"], "openDefaultPetOnLaunch" | "appearanceTheme" | "petScale" | "hudScale" | "bubbleScale" | "bubbleDurationScale" | "bubbleTheme" | "waitingAnimationDurationMs" | "idleCursorGazeEnabled" | "reactionAnimationOverrides" | "petPoolOrder" | "petPoolEnabled" | "pinnedPets" | "petConfinementEnabled" | "petCrossDisplayEnabled" | "petGravityEnabled" | "petBounciness" | "petFloorFriction" | "personality" | "voiceAssistantShortcut" | "chatShortcut" | "petToggleShortcut" | "showChatButton" | "showTalkButton" | "petButtonsPosition" | "petButtonsSize">;
   petScaleOptions: typeof petScaleOptions;
   hudScaleOptions: typeof hudScaleOptions;
   bubbleScaleOptions: typeof bubbleScaleOptions;
@@ -125,6 +125,7 @@ function getSettingsStateSnapshot(): {
       hudScale: state.preferences.hudScale,
       bubbleScale: state.preferences.bubbleScale,
       bubbleDurationScale: state.preferences.bubbleDurationScale,
+      bubbleTheme: state.preferences.bubbleTheme,
       waitingAnimationDurationMs: state.preferences.waitingAnimationDurationMs,
       idleCursorGazeEnabled: state.preferences.idleCursorGazeEnabled,
       reactionAnimationOverrides: state.preferences.reactionAnimationOverrides,
@@ -486,6 +487,7 @@ export function installInternalUiHandlers(): void {
     const previousScale = getAppStateSnapshot().preferences.petScale;
     const previousHudScale = getAppStateSnapshot().preferences.hudScale;
     const previousBubbleScale = getAppStateSnapshot().preferences.bubbleScale;
+    const previousBubbleTheme = getAppStateSnapshot().preferences.bubbleTheme;
     const previousWaitingAnimationDurationMs = getAppStateSnapshot().preferences.waitingAnimationDurationMs;
     const previousIdleCursorGazeEnabled = getAppStateSnapshot().preferences.idleCursorGazeEnabled;
     const previousOverrides = JSON.stringify(getAppStateSnapshot().preferences.reactionAnimationOverrides ?? {});
@@ -522,10 +524,16 @@ export function installInternalUiHandlers(): void {
       refreshDefaultPetContent();
       broadcastDashboardRefresh();
     }
-    if (state.preferences.petScale !== previousScale || state.preferences.hudScale !== previousHudScale || state.preferences.bubbleScale !== previousBubbleScale || state.preferences.waitingAnimationDurationMs !== previousWaitingAnimationDurationMs || nextOverrides !== previousOverrides || petButtonPrefsChanged) {
+    if (state.preferences.petScale !== previousScale || state.preferences.hudScale !== previousHudScale || state.preferences.waitingAnimationDurationMs !== previousWaitingAnimationDurationMs || nextOverrides !== previousOverrides || petButtonPrefsChanged) {
       refreshDefaultPetContent();
       refreshAgentPetContent();
       refreshPinnedPetContent();
+    }
+    const bubbleLookChanged = state.preferences.bubbleScale !== previousBubbleScale
+      || state.preferences.bubbleTheme !== previousBubbleTheme;
+    if (bubbleLookChanged) {
+      // Speech bubbles show on every pet role, including plugin-spawned pets and LAN visitors.
+      refreshAllPetWindows("speech bubble change");
     }
     if (state.preferences.idleCursorGazeEnabled !== previousIdleCursorGazeEnabled) {
       refreshPetGazePreference();
@@ -561,6 +569,17 @@ export function installInternalUiHandlers(): void {
     if (!isLaunchAtLoginSupported()) return getLaunchAtLoginState();
     app.setLoginItemSettings({ openAtLogin: enabled, openAsHidden: true });
     return getLaunchAtLoginState();
+  });
+
+  ipcMain.handle("openpets:show-test-speech-bubble", (event): { readonly shown: boolean; readonly reason?: string } => {
+    assertAllowedSender(event, ["control-center"]);
+    // A default pet visiting another LAN host must not be woken here.
+    if (isDefaultPetAwayForLan()) {
+      return { shown: false, reason: "away" };
+    }
+    const result = applyExternalPetSay(t("settings.general.bubbleTest.message"), "waving");
+    debug("ui", "test speech bubble requested", { shown: result.shown, reason: result.reason });
+    return result;
   });
 
   ipcMain.handle("openpets:get-update-status", (event) => {

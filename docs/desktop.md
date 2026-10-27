@@ -530,7 +530,20 @@ so the largest bubble still fits in the pet window above the pet (never below 1)
 and the same value drives both the CSS and the Linux input shape.
 `bubbleDurationScale` (Short 0.6, Normal 1, Long 1.75, Very long 2.5) multiplies the
 reading time computed by `getTransientDisplayDurationMs`; explicit caller and media
-durations are unchanged. Plugin bubble slots keep their own TTLs.
+durations are unchanged. Plugin bubble slots keep their own TTLs. Bubbles with a
+media preview use the larger `.bubble.has-media` box, so they get a tighter cap.
+Changing the size re-renders every pet window, including plugin-spawned pets and
+LAN visitors. The duration math lives in the pure `pet-transient-duration.ts`.
+`bubbleTheme` (Light, Dark, System default; default Light) switches transient
+bubbles to dark colors in `pet-window-styles.ts`. System default wraps the dark
+rules in `@media (prefers-color-scheme: dark)`, so it follows the desktop's dark
+mode live; the Control Center's own appearance setting does not affect it. The
+pinned plugin HUD keeps its own look. Changing the theme also re-renders every
+pet window.
+A **Show Test Message** button below these settings makes the default pet say a
+sample message through `applyExternalPetSay`, so size, duration and theme can be
+previewed. It does nothing while the pet is paused or visiting another LAN host,
+and the Control Center says so.
 
 ### Remote control service
 
@@ -581,7 +594,7 @@ state, locale preference, the pet pool preference (ordered pet list +
 `petPoolEnabled` toggle), the pinned-pet preference (ordered `pinnedPets` list plus the
 per-pet `pinnedPetPositions` map, written through the dedicated
 `openpets:set-pet-pinned` / `setPinnedPets` paths rather than the preference patch), the host Pet Assistant personality profile, and display-roaming preferences (`petConfinementEnabled`,
-`petCrossDisplayEnabled`), speech bubble `bubbleScale` / `bubbleDurationScale`, plus the global `waitingAnimationDurationMs`
+`petCrossDisplayEnabled`), speech bubble `bubbleScale` / `bubbleDurationScale` / `bubbleTheme`, plus the global `waitingAnimationDurationMs`
 preference, the `idleCursorGazeEnabled` V2 idle-gaze toggle, and canonical
 `voiceAssistantShortcut` accelerator, and `lastSeenWhatsNewVersion` (the newest
 version whose What's new entries were dismissed; written on first launch of a
