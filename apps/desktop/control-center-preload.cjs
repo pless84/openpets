@@ -45,6 +45,7 @@ const api = {
   getReactionAnimationSettings: () => ipcRenderer.invoke("openpets:get-reaction-animation-settings"),
   getLaunchAtLogin: () => ipcRenderer.invoke("openpets:get-launch-at-login"),
   setLaunchAtLogin: (enabled) => ipcRenderer.invoke("openpets:set-launch-at-login", enabled),
+  sendTestDesktopNotification: () => ipcRenderer.invoke("openpets:send-test-desktop-notification"),
   getUpdateStatus: () => ipcRenderer.invoke("openpets:get-update-status"),
   checkForUpdates: () => ipcRenderer.invoke("openpets:check-for-updates"),
   openUpdateReleasePage: () => ipcRenderer.invoke("openpets:open-update-release-page"),

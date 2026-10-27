@@ -9,6 +9,7 @@ import { app, BrowserWindow, dialog, ipcMain, protocol, screen, type WebContents
 import { getAgentSetupSnapshot, runAgentSetupAction, updateAgentSetupCommandPaths } from "./agent-setup.js";
 import { refreshAgentPetContent } from "./agent-pet-controller.js";
 import { bubbleDurationScaleOptions, bubbleScaleOptions, getAppStateSnapshot, getLastSeenWhatsNewVersion, hudScaleOptions, markWhatsNewSeen, normalizePetPoolOrder, petScaleOptions, resolveCompanionDisplayName, setPetPinned, setPetPoolOrder, updatePreferences } from "./app-state.js";
+import { isDesktopNotificationMirrorSupported, sendDesktopNotificationMirrorTest, syncDesktopNotificationMirror } from "./desktop-notification-mirror.js";
 import { applyRoamingToAllPets } from "./pet-roaming-controller.js";
 import { createAppIcon } from "./assets.js";
 import { getCatalogPageUiState, getCatalogSearchUiState, getCatalogUiState } from "./catalog.js";
@@ -103,11 +104,13 @@ function syncDockVisibilityForInternalUi(): void {
 }
 
 function getSettingsStateSnapshot(): {
-  preferences: Pick<ReturnType<typeof getAppStateSnapshot>["preferences"], "openDefaultPetOnLaunch" | "appearanceTheme" | "petScale" | "hudScale" | "bubbleScale" | "bubbleDurationScale" | "waitingAnimationDurationMs" | "idleCursorGazeEnabled" | "reactionAnimationOverrides" | "petPoolOrder" | "petPoolEnabled" | "pinnedPets" | "petConfinementEnabled" | "petCrossDisplayEnabled" | "petGravityEnabled" | "petBounciness" | "petFloorFriction" | "personality" | "voiceAssistantShortcut" | "chatShortcut" | "petToggleShortcut" | "showChatButton" | "showTalkButton" | "petButtonsPosition" | "petButtonsSize">;
+  preferences: Pick<ReturnType<typeof getAppStateSnapshot>["preferences"], "openDefaultPetOnLaunch" | "appearanceTheme" | "petScale" | "hudScale" | "bubbleScale" | "bubbleDurationScale" | "notificationMirrorEnabled" | "notificationMirrorIncludeBody" | "notificationMirrorIgnoredApps" | "waitingAnimationDurationMs" | "idleCursorGazeEnabled" | "reactionAnimationOverrides" | "petPoolOrder" | "petPoolEnabled" | "pinnedPets" | "petConfinementEnabled" | "petCrossDisplayEnabled" | "petGravityEnabled" | "petBounciness" | "petFloorFriction" | "personality" | "voiceAssistantShortcut" | "chatShortcut" | "petToggleShortcut" | "showChatButton" | "showTalkButton" | "petButtonsPosition" | "petButtonsSize">;
   petScaleOptions: typeof petScaleOptions;
   hudScaleOptions: typeof hudScaleOptions;
   bubbleScaleOptions: typeof bubbleScaleOptions;
   bubbleDurationScaleOptions: typeof bubbleDurationScaleOptions;
+  /** Whether desktop notification mirroring can run on this platform (Linux only). */
+  notificationMirrorSupported: boolean;
   /** Non-broken, non-built-in installed pets available for pool selection. */
   petPoolCandidates: ReadonlyArray<{ readonly id: string; readonly displayName: string }>;
   /** Maximum number of pets that can be pinned at the same time. */
@@ -125,6 +128,9 @@ function getSettingsStateSnapshot(): {
       hudScale: state.preferences.hudScale,
       bubbleScale: state.preferences.bubbleScale,
       bubbleDurationScale: state.preferences.bubbleDurationScale,
+      notificationMirrorEnabled: state.preferences.notificationMirrorEnabled,
+      notificationMirrorIncludeBody: state.preferences.notificationMirrorIncludeBody,
+      notificationMirrorIgnoredApps: state.preferences.notificationMirrorIgnoredApps,
       waitingAnimationDurationMs: state.preferences.waitingAnimationDurationMs,
       idleCursorGazeEnabled: state.preferences.idleCursorGazeEnabled,
       reactionAnimationOverrides: state.preferences.reactionAnimationOverrides,
@@ -149,6 +155,7 @@ function getSettingsStateSnapshot(): {
     hudScaleOptions,
     bubbleScaleOptions,
     bubbleDurationScaleOptions,
+    notificationMirrorSupported: isDesktopNotificationMirrorSupported(),
     petPoolCandidates: state.pets.installed
       .filter((p) => !p.builtIn && !p.broken && p.id !== state.preferences.defaultPetId)
       .map(({ id, displayName }) => ({ id, displayName })),
@@ -527,6 +534,9 @@ export function installInternalUiHandlers(): void {
       refreshAgentPetContent();
       refreshPinnedPetContent();
     }
+    if (validatedPatch.notificationMirrorEnabled !== undefined || validatedPatch.notificationMirrorIncludeBody !== undefined || validatedPatch.notificationMirrorIgnoredApps !== undefined) {
+      syncDesktopNotificationMirror();
+    }
     if (state.preferences.idleCursorGazeEnabled !== previousIdleCursorGazeEnabled) {
       refreshPetGazePreference();
     }
@@ -561,6 +571,16 @@ export function installInternalUiHandlers(): void {
     if (!isLaunchAtLoginSupported()) return getLaunchAtLoginState();
     app.setLoginItemSettings({ openAtLogin: enabled, openAsHidden: true });
     return getLaunchAtLoginState();
+  });
+
+  ipcMain.handle("openpets:send-test-desktop-notification", async (event) => {
+    assertAllowedSender(event, ["control-center"]);
+    // The time keeps repeated tests from being dropped as duplicates.
+    const time = new Date().toLocaleTimeString();
+    await sendDesktopNotificationMirrorTest(
+      t("notificationMirror.test.appName"),
+      t("notificationMirror.test.summary", { time }),
+    );
   });
 
   ipcMain.handle("openpets:get-update-status", (event) => {

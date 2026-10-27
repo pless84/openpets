@@ -532,6 +532,27 @@ and the same value drives both the CSS and the Linux input shape.
 reading time computed by `getTransientDisplayDurationMs`; explicit caller and media
 durations are unchanged. Plugin bubble slots keep their own TTLs.
 
+### Desktop notification mirror (Linux)
+
+`desktop-notification-mirror.ts` owns an optional `dbus-monitor --session`
+child process that watches `org.freedesktop.Notifications.Notify` calls and shows
+each notification on the default pet through `applyExternalPetSay`. It runs only
+while `notificationMirrorEnabled` is on (off by default; Linux only), restarts with
+backoff if the monitor exits, and stops on quit or when the setting is turned off.
+Pure parsing, filtering and formatting live in `desktop-notification-mirror-core.ts`:
+messages are "App: title" (body only with `notificationMirrorIncludeBody`), capped
+at the `pet.say` 140-character limit, de-duplicated for 10 seconds, skip apps in
+`notificationMirrorIgnoredApps` and OpenPets' own notifications, and use the
+`waiting` reaction for critical urgency. Notification text is never logged.
+Requires `dbus-monitor` on the host (part of the standard D-Bus tools).
+
+Settings → Desktop Notifications has a **Send Test** button (enabled while the
+mirror is on). It sends a real notification with `gdbus call … Notify` from the
+app name "Notification test", so it checks the whole path from the notification
+server to the pet bubble. The title includes the current time so repeated tests
+are not dropped as duplicates. If `gdbus` or `dbus-monitor` is missing, the
+Control Center shows the reason.
+
 ### Remote control service
 
 `remote-control-service.ts` is deliberately not a mode of `local-ipc.ts`. It is
@@ -581,7 +602,7 @@ state, locale preference, the pet pool preference (ordered pet list +
 `petPoolEnabled` toggle), the pinned-pet preference (ordered `pinnedPets` list plus the
 per-pet `pinnedPetPositions` map, written through the dedicated
 `openpets:set-pet-pinned` / `setPinnedPets` paths rather than the preference patch), the host Pet Assistant personality profile, and display-roaming preferences (`petConfinementEnabled`,
-`petCrossDisplayEnabled`), speech bubble `bubbleScale` / `bubbleDurationScale`, plus the global `waitingAnimationDurationMs`
+`petCrossDisplayEnabled`), speech bubble `bubbleScale` / `bubbleDurationScale`, the Linux desktop notification mirror settings (`notificationMirrorEnabled`, `notificationMirrorIncludeBody`, `notificationMirrorIgnoredApps`), plus the global `waitingAnimationDurationMs`
 preference, the `idleCursorGazeEnabled` V2 idle-gaze toggle, and canonical
 `voiceAssistantShortcut` accelerator, and `lastSeenWhatsNewVersion` (the newest
 version whose What's new entries were dismissed; written on first launch of a
