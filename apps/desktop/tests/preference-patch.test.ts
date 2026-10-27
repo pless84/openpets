@@ -251,4 +251,14 @@ for (const { key, errMsg } of booleanKeys) {
   console.log("validatePreferencePatch: speech bubble size, duration and theme — PASS");
 }
 
+{
+  assert.deepEqual(
+    validatePreferencePatch({ notificationMirrorEnabled: true, notificationMirrorIncludeBody: false, notificationMirrorIgnoredApps: "Spotify, KDE Connect" }),
+    { notificationMirrorEnabled: true, notificationMirrorIncludeBody: false, notificationMirrorIgnoredApps: "Spotify, KDE Connect" },
+  );
+  assert.throws(() => validatePreferencePatch({ notificationMirrorEnabled: "yes" }), /Invalid notificationMirrorEnabled/);
+  assert.throws(() => validatePreferencePatch({ notificationMirrorIgnoredApps: "x".repeat(301) }), /Invalid ignored notification apps/);
+  console.log("validatePreferencePatch: notification mirror settings — PASS");
+}
+
 console.log("\nAll preference-patch tests passed.");

@@ -73,7 +73,7 @@ type VoiceAssistantShortcutSnapshot = {
   readonly status: VoiceAssistantShortcutStatus;
   readonly reason?: string;
 };
-type SettingsState = { preferences: { openDefaultPetOnLaunch: boolean; appearanceTheme: AppearanceTheme; locale?: "system" | string; petScale: number; hudScale: number; bubbleScale: number; bubbleDurationScale: number; bubbleTheme: "light" | "dark" | "system"; waitingAnimationDurationMs: number; idleCursorGazeEnabled: boolean; reactionAnimationOverrides?: ReactionAnimationOverrides; petPoolEnabled: boolean; petPoolOrder?: readonly string[]; pinnedPets?: readonly string[]; petConfinementEnabled: boolean; petCrossDisplayEnabled: boolean; petGravityEnabled: boolean; petBounciness: number; petFloorFriction: number; personality: PetAssistantPersonality; voiceAssistantShortcut?: string; chatShortcut?: string; petToggleShortcut?: string; showChatButton: boolean; showTalkButton: boolean; petButtonsPosition: "left" | "right"; petButtonsSize: "small" | "medium" | "large" }; petScaleOptions: PetScaleOption[]; hudScaleOptions: PetScaleOption[]; bubbleScaleOptions: PetScaleOption[]; bubbleDurationScaleOptions: PetScaleOption[]; petPoolCandidates: ReadonlyArray<PetPoolCandidate>; pinnedPetsLimit: number; voiceAssistantShortcutStatus?: VoiceAssistantShortcutSnapshot; chatShortcutStatus?: VoiceAssistantShortcutSnapshot; petToggleShortcutStatus?: VoiceAssistantShortcutSnapshot };
+type SettingsState = { preferences: { openDefaultPetOnLaunch: boolean; appearanceTheme: AppearanceTheme; locale?: "system" | string; petScale: number; hudScale: number; bubbleScale: number; bubbleDurationScale: number; bubbleTheme: "light" | "dark" | "system"; notificationMirrorEnabled: boolean; notificationMirrorIncludeBody: boolean; notificationMirrorIgnoredApps: string; waitingAnimationDurationMs: number; idleCursorGazeEnabled: boolean; reactionAnimationOverrides?: ReactionAnimationOverrides; petPoolEnabled: boolean; petPoolOrder?: readonly string[]; pinnedPets?: readonly string[]; petConfinementEnabled: boolean; petCrossDisplayEnabled: boolean; petGravityEnabled: boolean; petBounciness: number; petFloorFriction: number; personality: PetAssistantPersonality; voiceAssistantShortcut?: string; chatShortcut?: string; petToggleShortcut?: string; showChatButton: boolean; showTalkButton: boolean; petButtonsPosition: "left" | "right"; petButtonsSize: "small" | "medium" | "large" }; petScaleOptions: PetScaleOption[]; hudScaleOptions: PetScaleOption[]; bubbleScaleOptions: PetScaleOption[]; bubbleDurationScaleOptions: PetScaleOption[]; notificationMirrorSupported: boolean; petPoolCandidates: ReadonlyArray<PetPoolCandidate>; pinnedPetsLimit: number; voiceAssistantShortcutStatus?: VoiceAssistantShortcutSnapshot; chatShortcutStatus?: VoiceAssistantShortcutSnapshot; petToggleShortcutStatus?: VoiceAssistantShortcutSnapshot };
 type PreferencePatch = Omit<Partial<SettingsState["preferences"]>, "personality"> & { personality?: Partial<PetAssistantPersonality> };
 type LaunchAtLoginState = { supported: boolean; enabled: boolean };
 type LanTopologyIssue = { code: "self_reference" | "missing_reverse"; host: string; edge: "left" | "right" | "up" | "down"; neighbor: string };
@@ -206,6 +206,7 @@ type ControlCenterApi = WhatsNewApi & {
   getLaunchAtLogin(): Promise<LaunchAtLoginState>;
   setLaunchAtLogin(enabled: boolean): Promise<LaunchAtLoginState>;
   showTestSpeechBubble(): Promise<{ shown: boolean; reason?: string }>;
+  sendTestDesktopNotification(): Promise<void>;
   getUpdateStatus(): Promise<UpdateStatus>;
   checkForUpdates(): Promise<UpdateStatus>;
   openUpdateReleasePage(): Promise<void>;
@@ -1556,6 +1557,69 @@ function SettingsView({ onAppearanceThemeChange, onTokenHandoff }: { onAppearanc
                 onRefresh={() => void handleRefreshVoiceDevices()}
               />
             </div>
+
+            {settings?.notificationMirrorSupported && (
+              <div className="settings-section">
+                <h2 className="settings-section-title">{t("settings.notificationMirror.title")}</h2>
+                <div className="settings-group">
+                  <ToggleRow
+                    title={t("settings.notificationMirror.enabled.title")}
+                    description={t("settings.notificationMirror.enabled.description")}
+                    checked={settings.preferences.notificationMirrorEnabled}
+                    disabled={!!busy}
+                    testId="setting-notification-mirror-toggle"
+                    onChange={(checked) => patchPreferences({ notificationMirrorEnabled: checked }, t("settings.toast.notificationMirrorSaved"))}
+                  />
+                  <ToggleRow
+                    title={t("settings.notificationMirror.includeBody.title")}
+                    description={t("settings.notificationMirror.includeBody.description")}
+                    checked={settings.preferences.notificationMirrorIncludeBody}
+                    disabled={!!busy || !settings.preferences.notificationMirrorEnabled}
+                    testId="setting-notification-mirror-body-toggle"
+                    onChange={(checked) => patchPreferences({ notificationMirrorIncludeBody: checked }, t("settings.toast.notificationMirrorSaved"))}
+                  />
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <strong>{t("settings.notificationMirror.ignoredApps.title")}</strong>
+                      <small>{t("settings.notificationMirror.ignoredApps.description")}</small>
+                    </div>
+                    <input
+                      key={settings.preferences.notificationMirrorIgnoredApps}
+                      className="settings-select settings-text-input"
+                      type="text"
+                      maxLength={300}
+                      spellCheck={false}
+                      placeholder={t("settings.notificationMirror.ignoredApps.placeholder")}
+                      defaultValue={settings.preferences.notificationMirrorIgnoredApps}
+                      disabled={!!busy || !settings.preferences.notificationMirrorEnabled}
+                      data-testid="setting-notification-mirror-ignored-apps"
+                      onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }}
+                      onBlur={(event) => {
+                        const next = event.target.value.trim();
+                        if (next !== settings.preferences.notificationMirrorIgnoredApps) patchPreferences({ notificationMirrorIgnoredApps: next }, t("settings.toast.notificationMirrorSaved"));
+                      }}
+                    />
+                  </div>
+                  <div className="settings-row">
+                    <div className="settings-row-info">
+                      <strong>{t("settings.notificationMirror.test.title")}</strong>
+                      <small>{t("settings.notificationMirror.test.description")}</small>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="compact"
+                      disabled={!!busy || !settings.preferences.notificationMirrorEnabled}
+                      onClick={() => void run(t("settings.busy.sending"), async () => {
+                        await api.sendTestDesktopNotification();
+                        setMessage(t("settings.toast.testNotificationSent"));
+                      })}
+                    >
+                      {t("settings.notificationMirror.test.button")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="settings-section">
               <h2 className="settings-section-title">{t("settings.petBehavior.title")}</h2>

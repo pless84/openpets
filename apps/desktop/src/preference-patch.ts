@@ -5,7 +5,7 @@
  * without an Electron process context.
  */
 
-import { type BubbleDurationScaleValue, type BubbleScaleValue, type BubbleTheme, normalizeBubbleDurationScale, normalizeBubbleScale, normalizeBubbleTheme, normalizeAppearanceTheme, normalizeHudScale, normalizePetButtonsPosition, normalizePetButtonsSize, normalizePetScale, normalizeWaitingAnimationDurationMs, type AppearanceTheme, type PetButtonsPosition, type PetButtonsSize, type WaitingAnimationDurationMs } from "./app-state-core.js";
+import { type BubbleDurationScaleValue, type BubbleScaleValue, type BubbleTheme, maxNotificationMirrorIgnoredAppsLength, normalizeBubbleDurationScale, normalizeBubbleScale, normalizeBubbleTheme, normalizeAppearanceTheme, normalizeHudScale, normalizePetButtonsPosition, normalizePetButtonsSize, normalizePetScale, normalizeWaitingAnimationDurationMs, type AppearanceTheme, type PetButtonsPosition, type PetButtonsSize, type WaitingAnimationDurationMs } from "./app-state-core.js";
 import { isSupportedLocale, type LocalePreference } from "./i18n/index.js";
 import { validateReactionAnimationOverrides } from "./reaction-animation-mapping.js";
 import { validatePetAssistantPersonalityPatch, type PetAssistantPersonalityPatch } from "./pet-assistant-personality.js";
@@ -20,6 +20,9 @@ export type PreferencePatch = {
   bubbleScale?: BubbleScaleValue;
   bubbleDurationScale?: BubbleDurationScaleValue;
   bubbleTheme?: BubbleTheme;
+  notificationMirrorEnabled?: boolean;
+  notificationMirrorIncludeBody?: boolean;
+  notificationMirrorIgnoredApps?: string;
   waitingAnimationDurationMs?: WaitingAnimationDurationMs;
   idleCursorGazeEnabled?: boolean;
   reactionAnimationOverrides?: ReturnType<typeof validateReactionAnimationOverrides>;
@@ -135,6 +138,19 @@ export function validatePreferencePatch(value: unknown): PreferencePatch {
     const theme = normalizeBubbleTheme(value.bubbleTheme);
     if (theme !== value.bubbleTheme) throw new Error("Invalid speech bubble theme value.");
     patch.bubbleTheme = theme;
+  }
+
+  for (const key of ["notificationMirrorEnabled", "notificationMirrorIncludeBody"] as const) {
+    if (!(key in value)) continue;
+    const enabled = value[key];
+    if (typeof enabled !== "boolean") throw new Error(`Invalid ${key} value.`);
+    patch[key] = enabled;
+  }
+
+  if ("notificationMirrorIgnoredApps" in value) {
+    const apps = value.notificationMirrorIgnoredApps;
+    if (typeof apps !== "string" || apps.length > maxNotificationMirrorIgnoredAppsLength) throw new Error("Invalid ignored notification apps value.");
+    patch.notificationMirrorIgnoredApps = apps;
   }
 
   if ("waitingAnimationDurationMs" in value) {

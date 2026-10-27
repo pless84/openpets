@@ -5,7 +5,7 @@ import { app } from "electron";
 import { isValidZedNodeCommand } from "@open-pets/zed";
 import { validatePetSpritesheetPath } from "install-pet/spritesheet";
 
-import { bubbleDurationScaleOptions, bubbleScaleOptions, defaultBubbleDurationScale, defaultBubbleScale, defaultBubbleTheme, normalizeBubbleDurationScale, normalizeBubbleScale, normalizeBubbleTheme, type BubbleDurationScaleValue, type BubbleScaleValue, type BubbleTheme, defaultAppearanceTheme, defaultHudScale, defaultIdleCursorGazeEnabled, defaultPetButtonsPosition, defaultPetButtonsSize, defaultPetScale, defaultWaitingAnimationDurationMs, getHudScaleForPetScale, markOnboardingCompleted, normalizeAppearanceTheme, normalizeHudScale, normalizeIdleCursorGazeEnabled, normalizeOnboardingCompleted, normalizePetButtonsPosition, normalizePetButtonsSize, normalizePetConfinementEnabled, normalizePetCrossDisplayEnabled, normalizePetGravityEnabled, normalizePetHorizontalFlip, normalizePetPhysicsFraction, defaultPetBounciness, defaultPetFloorFriction, normalizePetScale, normalizeWaitingAnimationDurationMs, hudScaleOptions, petScaleOptions, togglePetHorizontalFlipMap, waitingAnimationDurationOptions, type AppearanceTheme, type HudScaleValue, type PetButtonsPosition, type PetButtonsSize, type PetScaleValue, type WaitingAnimationDurationMs } from "./app-state-core.js";
+import { bubbleDurationScaleOptions, bubbleScaleOptions, defaultBubbleDurationScale, defaultBubbleScale, defaultBubbleTheme, normalizeBubbleDurationScale, normalizeBubbleScale, normalizeBubbleTheme, normalizeNotificationMirrorIgnoredApps, type BubbleDurationScaleValue, type BubbleScaleValue, type BubbleTheme, defaultAppearanceTheme, defaultHudScale, defaultIdleCursorGazeEnabled, defaultPetButtonsPosition, defaultPetButtonsSize, defaultPetScale, defaultWaitingAnimationDurationMs, getHudScaleForPetScale, markOnboardingCompleted, normalizeAppearanceTheme, normalizeHudScale, normalizeIdleCursorGazeEnabled, normalizeOnboardingCompleted, normalizePetButtonsPosition, normalizePetButtonsSize, normalizePetConfinementEnabled, normalizePetCrossDisplayEnabled, normalizePetGravityEnabled, normalizePetHorizontalFlip, normalizePetPhysicsFraction, defaultPetBounciness, defaultPetFloorFriction, normalizePetScale, normalizeWaitingAnimationDurationMs, hudScaleOptions, petScaleOptions, togglePetHorizontalFlipMap, waitingAnimationDurationOptions, type AppearanceTheme, type HudScaleValue, type PetButtonsPosition, type PetButtonsSize, type PetScaleValue, type WaitingAnimationDurationMs } from "./app-state-core.js";
 import { builtInPet } from "./built-in-pet.js";
 import { normalizeDefaultPetPositionState, normalizePosition, recordDefaultPetPositionState, resetDefaultPetPositionState, type DefaultPetPosition, type DefaultPetPositionState } from "./default-pet-position-state.js";
 import { isSupportedLocale, type LocalePreference } from "./i18n/catalog.js";
@@ -70,6 +70,12 @@ export interface OpenPetsStateV1 {
     readonly bubbleDurationScale: BubbleDurationScaleValue;
     /** Color scheme of transient speech bubbles; "system" follows the desktop's dark mode. */
     readonly bubbleTheme: BubbleTheme;
+    /** Linux only: mirror desktop notifications (org.freedesktop.Notifications) to the default pet. */
+    readonly notificationMirrorEnabled: boolean;
+    /** Include the notification body, not just the app name and title. */
+    readonly notificationMirrorIncludeBody: boolean;
+    /** Comma-separated app names that are never mirrored (case-insensitive). */
+    readonly notificationMirrorIgnoredApps: string;
     readonly waitingAnimationDurationMs: WaitingAnimationDurationMs;
     /** Whether idle V2 pets follow the global cursor. Defaults to true. */
     readonly idleCursorGazeEnabled: boolean;
@@ -762,6 +768,9 @@ function normalizePreferences(value: Partial<OpenPetsStateV1["preferences"]>): O
     bubbleScale: normalizeBubbleScale(value.bubbleScale),
     bubbleDurationScale: normalizeBubbleDurationScale(value.bubbleDurationScale),
     bubbleTheme: normalizeBubbleTheme(value.bubbleTheme),
+    notificationMirrorEnabled: typeof value.notificationMirrorEnabled === "boolean" ? value.notificationMirrorEnabled : defaultState.preferences.notificationMirrorEnabled,
+    notificationMirrorIncludeBody: typeof value.notificationMirrorIncludeBody === "boolean" ? value.notificationMirrorIncludeBody : defaultState.preferences.notificationMirrorIncludeBody,
+    notificationMirrorIgnoredApps: normalizeNotificationMirrorIgnoredApps(value.notificationMirrorIgnoredApps),
     waitingAnimationDurationMs: normalizeWaitingAnimationDurationMs(value.waitingAnimationDurationMs),
     idleCursorGazeEnabled: normalizeIdleCursorGazeEnabled(value.idleCursorGazeEnabled, defaultState.preferences.idleCursorGazeEnabled),
     reactionAnimationOverrides: normalizeReactionAnimationOverrides(value.reactionAnimationOverrides),
@@ -883,6 +892,9 @@ function createDefaultState(): OpenPetsStateV1 {
       bubbleScale: defaultBubbleScale,
       bubbleDurationScale: defaultBubbleDurationScale,
       bubbleTheme: defaultBubbleTheme,
+      notificationMirrorEnabled: false,
+      notificationMirrorIncludeBody: false,
+      notificationMirrorIgnoredApps: "",
       waitingAnimationDurationMs: defaultWaitingAnimationDurationMs,
       idleCursorGazeEnabled: defaultIdleCursorGazeEnabled,
       reactionAnimationOverrides: undefined,

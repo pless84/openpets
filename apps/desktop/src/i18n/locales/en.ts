@@ -405,6 +405,19 @@ export const en = {
   "settings.general.bubbleTest.button": "Show Test Message",
   "settings.general.bubbleTest.message": "Hi! This is how my speech bubbles look. Change the size, duration or theme and try again.",
   "settings.general.bubbleTest.notShown": "Your pet couldn't show the message. It may be paused, hidden or visiting another computer.",
+  "settings.notificationMirror.title": "Desktop Notifications",
+  "settings.notificationMirror.enabled.title": "Show desktop notifications on the pet",
+  "settings.notificationMirror.enabled.description": "Your pet repeats the app name and title of each desktop notification in a speech bubble.",
+  "settings.notificationMirror.includeBody.title": "Include notification text",
+  "settings.notificationMirror.includeBody.description": "Also show the notification body. It may contain private message content.",
+  "settings.notificationMirror.ignoredApps.title": "Ignored apps",
+  "settings.notificationMirror.ignoredApps.description": "Comma-separated app names that are never shown.",
+  "settings.notificationMirror.ignoredApps.placeholder": "Spotify, KDE Connect",
+  "settings.notificationMirror.test.title": "Test notification",
+  "settings.notificationMirror.test.description": "Send a desktop notification to check that your pet shows it.",
+  "settings.notificationMirror.test.button": "Send Test",
+  "notificationMirror.test.appName": "Notification test",
+  "notificationMirror.test.summary": "Hello from your pet! ({time})",
   "settings.general.idleCursorGaze.title": "Idle cursor gaze",
   "settings.general.idleCursorGaze.description": "Let V2 pets look toward your cursor while they are idle.",
   "settings.appearance.title": "Appearance",
@@ -424,6 +437,8 @@ export const en = {
   "settings.toast.bubbleScaleSaved": "Speech bubble size saved.",
   "settings.toast.bubbleDurationSaved": "Speech bubble duration saved.",
   "settings.toast.bubbleThemeSaved": "Speech bubble theme saved.",
+  "settings.toast.notificationMirrorSaved": "Notification settings saved.",
+  "settings.toast.testNotificationSent": "Test notification sent.",
   "settings.toast.idleCursorGazeSaved": "Idle cursor gaze setting saved.",
 
   // --- Companion assistant (Chat & Voice) settings ---
@@ -497,6 +512,7 @@ export const en = {
   "settings.busy.opening": "Opening",
   "settings.busy.checking": "Checking",
   "settings.busy.showing": "Showing",
+  "settings.busy.sending": "Sending",
 
   // --- Settings: Pet Assistant personality (renderer) ---
   "settings.personality.eyebrow": "Conversation",

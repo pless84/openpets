@@ -66,6 +66,14 @@ export function normalizeBubbleTheme(value: unknown): BubbleTheme {
   return bubbleThemeOptions.find((option) => option === value) ?? defaultBubbleTheme;
 }
 
+// Desktop notification mirroring (Linux only): app names the user does not
+// want mirrored, as a comma-separated list.
+export const maxNotificationMirrorIgnoredAppsLength = 300;
+
+export function normalizeNotificationMirrorIgnoredApps(value: unknown): string {
+  return typeof value === "string" ? value.slice(0, maxNotificationMirrorIgnoredAppsLength) : "";
+}
+
 export function getHudScaleForPetScale(petScale: PetScaleValue): HudScaleValue {
   switch (petScale) {
     case 0.35:
