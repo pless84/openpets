@@ -370,8 +370,8 @@ export const fr: Partial<Messages> = {
   "settings.general.bubbleDuration.normal": "Normale",
   "settings.general.bubbleDuration.long": "Longue",
   "settings.general.bubbleDuration.veryLong": "Très longue",
-  "settings.general.bubbleTheme.title": "Thème des bulles",
-  "settings.general.bubbleTheme.description": "Choisissez des bulles claires ou sombres, ou suivez le mode sombre de votre bureau.",
+  "settings.general.bubbleTheme.title": "Thème du compagnon",
+  "settings.general.bubbleTheme.description": "Apparence claire ou sombre pour tout ce qui entoure votre compagnon : bulles, chat, bilans, sessions et boutons. Paramètre système suit le mode sombre de votre bureau.",
   "settings.general.bubbleTheme.light": "Clair",
   "settings.general.bubbleTheme.dark": "Sombre",
   "settings.general.bubbleTheme.system": "Paramètre système",
@@ -399,7 +399,7 @@ export const fr: Partial<Messages> = {
   "settings.toast.hudScaleSaved": "Taille du HUD enregistrée.",
   "settings.toast.bubbleScaleSaved": "Taille des bulles enregistrée.",
   "settings.toast.bubbleDurationSaved": "Durée des bulles enregistrée.",
-  "settings.toast.bubbleThemeSaved": "Thème des bulles enregistré.",
+  "settings.toast.bubbleThemeSaved": "Thème du compagnon enregistré.",
   "settings.toast.idleCursorGazeSaved": "Paramètre de suivi du curseur enregistré.",
 
   // --- Companion assistant (Chat & Voice) settings ---

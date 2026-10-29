@@ -534,11 +534,17 @@ durations are unchanged. Plugin bubble slots keep their own TTLs. Bubbles with a
 media preview use the larger `.bubble.has-media` box, so they get a tighter cap.
 Changing the size re-renders every pet window, including plugin-spawned pets and
 LAN visitors. The duration math lives in the pure `pet-transient-duration.ts`.
-`bubbleTheme` (Light, Dark, System default; default Light) switches transient
-bubbles to dark colors in `pet-window-styles.ts`. System default wraps the dark
-rules in `@media (prefers-color-scheme: dark)`, so it follows the desktop's dark
-mode live; the Control Center's own appearance setting does not affect it. The
-pinned plugin HUD keeps its own look. Changing the theme also re-renders every
+`bubbleTheme` (shown as **Pet theme**: Light, Dark, System default; default Light)
+colors everything around the pet: speech bubbles, the pinned plugin HUD, pet
+buttons, the compact composer, the chat and check-in panels, the practice
+session overlay, and the popups the pet opens (session Info window, plugin
+command forms). `pet-theme.ts` owns it: `createPetWindowThemeCss` returns the
+dark overrides, which `pet-window-styles.ts` injects after every base rule so
+they reuse the base selectors and change colors only. System default wraps them
+in `@media (prefers-color-scheme: dark)`, so pet windows follow the desktop's
+dark mode live; popups resolve it once on open through `isPetThemeDark`
+(`nativeTheme`) and set `<html data-theme>`. The Control Center's own
+appearance setting does not affect it. Changing the theme re-renders every
 pet window.
 A **Show Test Message** button below these settings makes the default pet say a
 sample message through `applyExternalPetSay`, so size, duration and theme can be

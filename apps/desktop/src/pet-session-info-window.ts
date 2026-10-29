@@ -7,6 +7,7 @@ import { debug, error as logError, warn } from "./logger.js";
 import { sessionIconPaths } from "./session-icons.js";
 import type { PluginSessionDescriptor, SessionInfo, SessionInfoSection } from "./plugin-session-descriptor.js";
 import { openExternalUrl } from "./external-url-opener.js";
+import { petThemeAttribute } from "./pet-theme.js";
 
 /**
  * The practice session Info window: a host-rendered, script-free page built
@@ -47,7 +48,7 @@ export function showSessionInfoWindow(descriptor: PluginSessionDescriptor, chrom
     maximizable: false,
     fullscreenable: false,
     show: false,
-    backgroundColor: "#f6f8ff",
+    backgroundColor: petThemeAttribute() === "dark" ? "#111827" : "#f6f8ff",
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -148,7 +149,7 @@ function buildInfoWindowHtml(descriptor: PluginSessionDescriptor, chrome: Record
     : "";
 
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="${petThemeAttribute()}">
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file: data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-src 'none'" />
@@ -454,6 +455,128 @@ function buildInfoWindowHtml(descriptor: PluginSessionDescriptor, chrome: Record
     .site-url {
       font-size: 11px;
       font-weight: 600;
+      color: #94a3b8;
+    }
+    /* Dark pet theme */
+    /* Dark theme overrides (colour only). */
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    }
+    html[data-theme="dark"],
+    html[data-theme="dark"] body {
+      background: linear-gradient(180deg, #101624 0%, #111827 52%, #172033 100%) fixed;
+      color: #e2e8f0;
+    }
+    html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background-color: rgba(148, 163, 184, 0.35);
+    }
+    html[data-theme="dark"] ::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+    html[data-theme="dark"] .hero-logo {
+      color: #f1f5f9;
+    }
+    html[data-theme="dark"] .hero-title {
+      color: #f8fafc;
+    }
+    html[data-theme="dark"] .hero-subtitle {
+      color: #94a3b8;
+    }
+    html[data-theme="dark"] .hero-rhythm {
+      background: rgba(96, 165, 250, 0.14);
+      border-color: rgba(96, 165, 250, 0.32);
+      color: #93c5fd;
+    }
+    html[data-theme="dark"] .intro {
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .section-heading {
+      color: #60a5fa;
+    }
+    html[data-theme="dark"] .section-heading::after {
+      background: linear-gradient(90deg, rgba(96, 165, 250, 0.35), transparent);
+    }
+    html[data-theme="dark"] .section-body {
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .items li {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(148, 163, 184, 0.28);
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .items .tick {
+      background: rgba(52, 211, 153, 0.16);
+      color: #34d399;
+    }
+    html[data-theme="dark"] .card {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(148, 163, 184, 0.28);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+    html[data-theme="dark"] .card-icon {
+      background: linear-gradient(to bottom right, rgba(51, 65, 85, 0.9), rgba(30, 58, 138, 0.55));
+      border-color: rgba(96, 165, 250, 0.3);
+      color: #93c5fd;
+    }
+    html[data-theme="dark"] .card-title {
+      color: #f1f5f9;
+    }
+    html[data-theme="dark"] .card-body {
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .card.is-highlighted {
+      border-color: rgba(96, 165, 250, 0.6);
+      background: linear-gradient(160deg, rgba(30, 41, 59, 0.96), rgba(46, 38, 78, 0.95));
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+    }
+    html[data-theme="dark"] .card-detail {
+      color: #60a5fa;
+    }
+    html[data-theme="dark"] .card-link {
+      color: #60a5fa;
+      border-bottom-color: rgba(96, 165, 250, 0.4);
+    }
+    html[data-theme="dark"] .card-link:hover {
+      color: #93c5fd;
+      border-bottom-color: #93c5fd;
+    }
+    html[data-theme="dark"] .citations {
+      background: rgba(96, 165, 250, 0.07);
+      border-color: rgba(96, 165, 250, 0.2);
+    }
+    html[data-theme="dark"] .citations-title {
+      color: #60a5fa;
+    }
+    html[data-theme="dark"] .citation {
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .citation-index {
+      color: #94a3b8;
+    }
+    html[data-theme="dark"] .citation a {
+      color: #60a5fa;
+      border-bottom-color: rgba(96, 165, 250, 0.4);
+    }
+    html[data-theme="dark"] .citation a:hover {
+      color: #93c5fd;
+      border-bottom-color: #93c5fd;
+    }
+    html[data-theme="dark"] .disclaimer {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+    html[data-theme="dark"] .site-link {
+      border-color: rgba(96, 165, 250, 0.4);
+      background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+      color: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+    html[data-theme="dark"] .site-link:hover {
+      background: linear-gradient(180deg, #4f94f8, #2563eb);
+    }
+    html[data-theme="dark"] .site-url {
       color: #94a3b8;
     }
   </style>

@@ -157,6 +157,14 @@ body.theme-dark .plugin-card-footer {
   border-color: rgba(116, 159, 221, 0.16);
 }
 
+body.theme-dark .reaction-grid {
+  background: rgba(116, 159, 221, 0.16);
+}
+
+body.theme-dark .reaction-row {
+  background: #172033;
+}
+
 body.theme-dark .settings-row:hover,
 body.theme-dark .reaction-row:hover,
 body.theme-dark .settings-nav-item:hover {

@@ -345,6 +345,7 @@ main.ts/settings → i18n.setLocaleFromPreference(system/user locale)
 - `pet-activity-player.cjs`: Dedicated finite rectangular-strip preload player, with image-load/completion generations, cleanup, baseline/scale preservation, and isolation from plugin overrides.
 - `pet-activities-types.ts` / `control-center-pet-activities-ipc.ts`: Clone-safe activity UI snapshot and authorized narrow get/enable/play IPC contracts.
 - `pet-window-styles.ts`: Pet-window CSS generation for reaction/movement sprite states and V2 cursor-glance atlas overrides; V2 idle keeps its animated row-zero loop outside an active glance, and paused V2 idle holds the static neutral cell
+- `pet-theme.ts`: Pet theme (`bubbleTheme` preference) for every surface around the pet: dark color overrides injected last into the pet-window CSS, plus `isPetThemeDark`/`petThemeAttribute` for popups the pet opens (session Info, plugin command forms).
 - `pet-content-stage.cjs`: Pet-preload DOM stage replacement and renderer-side retention/application of the host-owned scale override to the currently rendered sprite
 - `x11-pet-window-state.ts`: X11 client adapter that subscribes to StructureNotify before show, waits for matching MapNotify, sends post-map EWMH state additions, and observes `_NET_WM_STATE` until standard exclusion atoms and the KDE switcher atom when advertised by root `_NET_SUPPORTED` are present
 - `x11-pet-window-state-core.ts`: Electron-free EWMH atom/property helpers for merging existing state and checking required atoms
