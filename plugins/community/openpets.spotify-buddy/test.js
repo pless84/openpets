@@ -57,5 +57,12 @@ h.auth.mock(null);
 await login.handler();
 assert.ok(h.calls.speak.some((message) => message.startsWith("Spotify login failed:")), "executes Spotify login failure handling");
 
+// A network failure during a scheduled poll must not escape (the host would
+// mark the plugin broken) and must keep the polling loop alive.
+h.auth.mock({ accessToken: "access-token", expiresAt: Date.now() + 3_600_000 });
+await login.handler();
+await h.clock.advance("6s");
+assert.ok(h.calls.schedules.has("spotify-poll"), "keeps polling after a network failure");
+
 h.expectNoErrors();
 await h.stop();

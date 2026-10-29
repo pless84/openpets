@@ -133,7 +133,7 @@ If you change your ngrok URL, update both `bridgeUrl` and `network.hosts` in `op
 | Field | Default | Description |
 |---|---|---|
 | Bridge URL | `https://6b36-103-132-185-215.ngrok-free.app` | Public tunnel URL OpenPets can reach |
-| Poll interval | 15s | How often to check Spotify (min 10s) |
+| Poll interval | 5s | How often to check Spotify (min 5s, keeps the plugin under the host's 30 requests/min quota) |
 | Announce track changes | ✓ | Pet speaks the song + artist on track change |
 | React to music mood | ✓ | Pet changes reaction based on audio features |
 | React when playback stops | ✗ | Pet reacts idle when music pauses |

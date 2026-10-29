@@ -1,7 +1,9 @@
 // Spotify Buddy — OpenPets Plugin (manifestVersion 2, sdkVersion 1.0.0)
 
-const DEFAULT_POLL_INTERVAL_SECONDS = 2;
-const MIN_POLL_INTERVAL_SECONDS = 2;
+// The host allows 30 plugin HTTP requests per minute; polling every 5s leaves
+// headroom for audio features, lyrics, token refresh and playback commands.
+const DEFAULT_POLL_INTERVAL_SECONDS = 5;
+const MIN_POLL_INTERVAL_SECONDS = 5;
 const MAX_ANNOUNCEMENT_LENGTH = 140;
 const EMPTY_TRACK_ID = "__no_track__";
 
@@ -360,7 +362,14 @@ async function scheduleNext(ctx) {
   const delayMs = interval * 1000;
   await ctx.schedule.cancel("spotify-poll");
   await ctx.schedule.once("spotify-poll", delayMs, async () => {
-    await checkNow(ctx, false);
+    // A thrown schedule callback marks the plugin broken in the host, so a
+    // transient failure (network drop, HTTP quota) must not escape the loop.
+    try {
+      await checkNow(ctx, false);
+    } catch (e) {
+      ctx.log?.warn?.("Spotify poll failed", e?.message);
+      await ctx.status.set({ text: "Spotify: connection issue, retrying…", tone: "warning" });
+    }
     await scheduleNext(ctx);
   });
 }

@@ -1,6 +1,6 @@
 {
   "name": "openpets.spotify-buddy",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "description": "OpenPets community plugin for Spotify playback reactions and lyrics.",
   "type": "module",
   "scripts": {

@@ -3,7 +3,7 @@
   "id": "openpets.spotify-buddy",
   "name": "$t:plugin.name",
   "description": "$t:plugin.description",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "runtime": "javascript",
   "icon": "sparkles",
   "sdkVersion": "3.0.0",
@@ -38,8 +38,8 @@
     "pollIntervalSeconds": {
       "type": "number",
       "label": "Poll interval (seconds)",
-      "default": 2,
-      "min": 2,
+      "default": 5,
+      "min": 5,
       "max": 300,
       "step": 1
     },
